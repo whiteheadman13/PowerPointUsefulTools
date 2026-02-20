@@ -5,6 +5,7 @@
       <tab id="tabUsefulTools" label="便利ツール">
         <group id="groupTableOperations" label="テーブル操作">
           <button id="btnTableLayoutCopy" label="テーブルレイアウトコピー" size="large" onAction="BtnTableLayoutCopy_Click" />
+          <button id="btnDefaultTableSettings" label="デフォルトスタイル設定" size="large" onAction="BtnDefaultTableSettings_Click" />
         </group>
       </tab>
     </tabs>

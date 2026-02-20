@@ -182,6 +182,7 @@
     can be found.
   -->
   <ItemGroup>
+    <Compile Include="DefaultTableSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -205,6 +206,9 @@
     </Compile>
     <Compile Include="RibbonUsefulTools.cs" />
     <Compile Include="TableLayoutManager.cs" />
+    <Compile Include="TableSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ThisAddIn.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 using Office = Microsoft.Office.Core;
 
@@ -55,6 +56,16 @@ namespace PowerPointUsefulTools
             }
             catch { }
             return null;
+        }
+
+        public void BtnDefaultTableSettings_Click(Office.IRibbonControl control)
+        {
+            var settings = DefaultTableSettings.Load();
+            using (var form = new TableSettingsForm(settings))
+            {
+                if (form.ShowDialog() == DialogResult.OK)
+                    form.Result.Save();
+            }
         }
 
         private static string GetResourceText(string resourceName)
