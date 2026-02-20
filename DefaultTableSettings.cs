@@ -5,6 +5,15 @@ using System.Xml.Serialization;
 namespace PowerPointUsefulTools
 {
     [Serializable]
+    public class DefaultBorderStyle
+    {
+        public bool Visible { get; set; }
+        public int ColorRGB { get; set; }
+        public float Weight { get; set; }
+        public int DashStyle { get; set; } // MsoLineDashStyle: 1=実線, 2=点線, 3=破線, 4=一点鎖線, 5=二点鎖線
+    }
+
+    [Serializable]
     public class DefaultCellStyle
     {
         public int FillForeColorRGB { get; set; }
@@ -18,6 +27,11 @@ namespace PowerPointUsefulTools
         public float MarginBottom { get; set; }
         public float MarginLeft { get; set; }
         public float MarginRight { get; set; }
+
+        public DefaultBorderStyle BorderTop { get; set; }
+        public DefaultBorderStyle BorderBottom { get; set; }
+        public DefaultBorderStyle BorderLeft { get; set; }
+        public DefaultBorderStyle BorderRight { get; set; }
     }
 
     [Serializable]
@@ -42,7 +56,11 @@ namespace PowerPointUsefulTools
                 MarginTop = 3.6f,
                 MarginBottom = 3.6f,
                 MarginLeft = 7.2f,
-                MarginRight = 7.2f
+                MarginRight = 7.2f,
+                BorderTop = new DefaultBorderStyle { Visible = true, ColorRGB = 0x000000, Weight = 0.75f, DashStyle = 1 },
+                BorderBottom = new DefaultBorderStyle { Visible = true, ColorRGB = 0x000000, Weight = 0.75f, DashStyle = 1 },
+                BorderLeft = new DefaultBorderStyle { Visible = true, ColorRGB = 0x000000, Weight = 0.75f, DashStyle = 1 },
+                BorderRight = new DefaultBorderStyle { Visible = true, ColorRGB = 0x000000, Weight = 0.75f, DashStyle = 1 }
             };
             // Body: white background, black text
             BodyStyle = new DefaultCellStyle
@@ -57,7 +75,11 @@ namespace PowerPointUsefulTools
                 MarginTop = 3.6f,
                 MarginBottom = 3.6f,
                 MarginLeft = 7.2f,
-                MarginRight = 7.2f
+                MarginRight = 7.2f,
+                BorderTop = new DefaultBorderStyle { Visible = true, ColorRGB = 0x000000, Weight = 0.75f, DashStyle = 1 },
+                BorderBottom = new DefaultBorderStyle { Visible = true, ColorRGB = 0x000000, Weight = 0.75f, DashStyle = 1 },
+                BorderLeft = new DefaultBorderStyle { Visible = true, ColorRGB = 0x000000, Weight = 0.75f, DashStyle = 1 },
+                BorderRight = new DefaultBorderStyle { Visible = true, ColorRGB = 0x000000, Weight = 0.75f, DashStyle = 1 }
             };
         }
 

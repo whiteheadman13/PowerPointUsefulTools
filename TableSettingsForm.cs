@@ -25,8 +25,8 @@ namespace PowerPointUsefulTools
         private void BuildUI()
         {
             Text = "デフォルトテーブルスタイル設定";
-            Size = new Size(780, 500);
-            MinimumSize = new Size(780, 500);
+            Size = new Size(780, 640);
+            MinimumSize = new Size(780, 640);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -145,6 +145,21 @@ namespace PowerPointUsefulTools
             ctrl.MarginRightNud = CreateMarginNud();
             AddRow(grid, "余白 (pt)", BuildMarginPanel(ctrl), ContentAlignment.TopRight);
 
+            // 罫線: ヘッダー行 22pt + データ行 4×28pt = 134pt で固定
+            {
+                var borderRow = grid.RowStyles.Count;
+                grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 134f));
+                grid.RowCount = borderRow + 1;
+                grid.Controls.Add(new Label
+                {
+                    Text = "罫線",
+                    TextAlign = ContentAlignment.TopRight,
+                    Dock = DockStyle.Fill,
+                    Padding = new Padding(0, 4, 6, 4)
+                }, 0, borderRow);
+                grid.Controls.Add(BuildBorderPanel(ctrl), 1, borderRow);
+            }
+
             grp.Controls.Add(grid);
             return grp;
         }
@@ -172,6 +187,92 @@ namespace PowerPointUsefulTools
             panel.Controls.Add(ctrl.MarginLeftNud, 2, 1);
             panel.Controls.Add(ctrl.MarginRightNud, 3, 1);
             return panel;
+        }
+
+        private static TableLayoutPanel BuildBorderPanel(StyleControls ctrl)
+        {
+            var panel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 5,
+                RowCount = 5
+            };
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 24f));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 40f));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 46f));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60f));
+
+            // RowCount=5 のセッターが追加したデフォルト行をクリアし、正しいスタイルを一括設定
+            panel.RowStyles.Clear();
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+
+            panel.Controls.Add(new Label(), 0, 0);
+            panel.Controls.Add(CenterLabel("表示"), 1, 0);
+            panel.Controls.Add(CenterLabel("色"), 2, 0);
+            panel.Controls.Add(CenterLabel("太さ(pt)"), 3, 0);
+            panel.Controls.Add(CenterLabel("線種"), 4, 0);
+
+            ctrl.BorderTop = AddBorderRow(panel, "上", 1);
+            ctrl.BorderBottom = AddBorderRow(panel, "下", 2);
+            ctrl.BorderLeft = AddBorderRow(panel, "左", 3);
+            ctrl.BorderRight = AddBorderRow(panel, "右", 4);
+            return panel;
+        }
+
+        private static BorderRowControls AddBorderRow(TableLayoutPanel panel, string name, int row)
+        {
+            var ctrl = new BorderRowControls();
+
+            panel.Controls.Add(CenterLabel(name), 0, row);
+
+            ctrl.VisibleChk = new CheckBox { Dock = DockStyle.Fill, CheckAlign = ContentAlignment.MiddleCenter };
+            panel.Controls.Add(ctrl.VisibleChk, 1, row);
+
+            ctrl.ColorBtn = new Button
+            {
+                BackColor = Color.Black,
+                FlatStyle = FlatStyle.Flat,
+                Text = string.Empty,
+                Dock = DockStyle.Fill,
+                Cursor = Cursors.Hand,
+                UseVisualStyleBackColor = false
+            };
+            ctrl.ColorBtn.FlatAppearance.BorderColor = Color.DimGray;
+            var captured = ctrl;
+            ctrl.ColorBtn.Click += (s, e) => PickColor(captured.ColorBtn, v => captured.ColorRGB = v);
+            panel.Controls.Add(ctrl.ColorBtn, 2, row);
+
+            ctrl.WeightNud = new NumericUpDown
+            {
+                Minimum = 0,
+                Maximum = 10,
+                DecimalPlaces = 2,
+                Increment = 0.25m,
+                Value = 0.75m,
+                Dock = DockStyle.Fill
+            };
+            panel.Controls.Add(ctrl.WeightNud, 3, row);
+
+            ctrl.DashCmb = CreateDashCombo();
+            panel.Controls.Add(ctrl.DashCmb, 4, row);
+            return ctrl;
+        }
+
+        private static ComboBox CreateDashCombo()
+        {
+            var cmb = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
+            cmb.Items.Add("実線");
+            cmb.Items.Add("点線");
+            cmb.Items.Add("破線");
+            cmb.Items.Add("一点鎖線");
+            cmb.Items.Add("二点鎖線");
+            cmb.SelectedIndex = 0;
+            return cmb;
         }
 
         private static Label CenterLabel(string text)
@@ -293,6 +394,27 @@ namespace PowerPointUsefulTools
             ctrl.MarginBottomNud.Value = ClampDecimal((decimal)style.MarginBottom, 0, 100);
             ctrl.MarginLeftNud.Value = ClampDecimal((decimal)style.MarginLeft, 0, 100);
             ctrl.MarginRightNud.Value = ClampDecimal((decimal)style.MarginRight, 0, 100);
+
+            LoadBorderRow(ctrl.BorderTop, style.BorderTop);
+            LoadBorderRow(ctrl.BorderBottom, style.BorderBottom);
+            LoadBorderRow(ctrl.BorderLeft, style.BorderLeft);
+            LoadBorderRow(ctrl.BorderRight, style.BorderRight);
+        }
+
+        private static void LoadBorderRow(BorderRowControls ctrl, DefaultBorderStyle style)
+        {
+            bool visible = style?.Visible ?? true;
+            int colorRGB = style?.ColorRGB ?? 0x000000;
+            float weight = style?.Weight ?? 0.75f;
+            int dashStyle = style?.DashStyle ?? 1;
+
+            ctrl.VisibleChk.Checked = visible;
+            ctrl.ColorRGB = colorRGB;
+            ctrl.ColorBtn.BackColor = OfficeBgrToColor(colorRGB);
+            ctrl.ColorBtn.FlatAppearance.MouseOverBackColor = ctrl.ColorBtn.BackColor;
+            ctrl.WeightNud.Value = ClampDecimal((decimal)weight, 0, 10);
+            int idx = dashStyle - 1;
+            ctrl.DashCmb.SelectedIndex = (idx >= 0 && idx < ctrl.DashCmb.Items.Count) ? idx : 0;
         }
 
         private DefaultTableSettings BuildSettings()
@@ -318,7 +440,22 @@ namespace PowerPointUsefulTools
                 MarginTop = (float)ctrl.MarginTopNud.Value,
                 MarginBottom = (float)ctrl.MarginBottomNud.Value,
                 MarginLeft = (float)ctrl.MarginLeftNud.Value,
-                MarginRight = (float)ctrl.MarginRightNud.Value
+                MarginRight = (float)ctrl.MarginRightNud.Value,
+                BorderTop = ReadBorderRow(ctrl.BorderTop),
+                BorderBottom = ReadBorderRow(ctrl.BorderBottom),
+                BorderLeft = ReadBorderRow(ctrl.BorderLeft),
+                BorderRight = ReadBorderRow(ctrl.BorderRight)
+            };
+        }
+
+        private static DefaultBorderStyle ReadBorderRow(BorderRowControls ctrl)
+        {
+            return new DefaultBorderStyle
+            {
+                Visible = ctrl.VisibleChk.Checked,
+                ColorRGB = ctrl.ColorRGB,
+                Weight = (float)ctrl.WeightNud.Value,
+                DashStyle = ctrl.DashCmb.SelectedIndex + 1
             };
         }
 
@@ -360,6 +497,19 @@ namespace PowerPointUsefulTools
             public NumericUpDown MarginBottomNud { get; set; }
             public NumericUpDown MarginLeftNud { get; set; }
             public NumericUpDown MarginRightNud { get; set; }
+            public BorderRowControls BorderTop { get; set; }
+            public BorderRowControls BorderBottom { get; set; }
+            public BorderRowControls BorderLeft { get; set; }
+            public BorderRowControls BorderRight { get; set; }
+        }
+
+        private class BorderRowControls
+        {
+            public int ColorRGB { get; set; }
+            public CheckBox VisibleChk { get; set; }
+            public Button ColorBtn { get; set; }
+            public NumericUpDown WeightNud { get; set; }
+            public ComboBox DashCmb { get; set; }
         }
     }
 }

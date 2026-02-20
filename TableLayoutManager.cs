@@ -19,6 +19,19 @@ namespace PowerPointUsefulTools
         public float MarginBottom { get; set; }
         public float MarginLeft { get; set; }
         public float MarginRight { get; set; }
+
+        public BorderInfo BorderTop { get; set; }
+        public BorderInfo BorderBottom { get; set; }
+        public BorderInfo BorderLeft { get; set; }
+        public BorderInfo BorderRight { get; set; }
+    }
+
+    internal class BorderInfo
+    {
+        public bool Visible { get; set; }
+        public int ColorRGB { get; set; }
+        public float Weight { get; set; }
+        public Office.MsoLineDashStyle DashStyle { get; set; }
     }
 
     internal class TableLayoutInfo
@@ -56,7 +69,22 @@ namespace PowerPointUsefulTools
                 MarginTop = style.MarginTop,
                 MarginBottom = style.MarginBottom,
                 MarginLeft = style.MarginLeft,
-                MarginRight = style.MarginRight
+                MarginRight = style.MarginRight,
+                BorderTop = ToBorderInfo(style.BorderTop),
+                BorderBottom = ToBorderInfo(style.BorderBottom),
+                BorderLeft = ToBorderInfo(style.BorderLeft),
+                BorderRight = ToBorderInfo(style.BorderRight)
+            };
+        }
+
+        private static BorderInfo ToBorderInfo(DefaultBorderStyle style)
+        {
+            return new BorderInfo
+            {
+                Visible = style?.Visible ?? true,
+                ColorRGB = style?.ColorRGB ?? 0x000000,
+                Weight = style?.Weight ?? 0.75f,
+                DashStyle = (Office.MsoLineDashStyle)(style?.DashStyle ?? 1)
             };
         }
 
@@ -97,7 +125,27 @@ namespace PowerPointUsefulTools
             try { style.MarginLeft = tf.MarginLeft; } catch { }
             try { style.MarginRight = tf.MarginRight; } catch { }
 
+            style.BorderTop = CopyBorder(cell, PowerPoint.PpBorderType.ppBorderTop);
+            style.BorderBottom = CopyBorder(cell, PowerPoint.PpBorderType.ppBorderBottom);
+            style.BorderLeft = CopyBorder(cell, PowerPoint.PpBorderType.ppBorderLeft);
+            style.BorderRight = CopyBorder(cell, PowerPoint.PpBorderType.ppBorderRight);
+
             return style;
+        }
+
+        private static BorderInfo CopyBorder(PowerPoint.Cell cell, PowerPoint.PpBorderType borderType)
+        {
+            var info = new BorderInfo { Visible = true, Weight = 0.75f, DashStyle = Office.MsoLineDashStyle.msoLineSolid };
+            try
+            {
+                dynamic border = cell.Borders[borderType];
+                try { info.Visible = border.Visible != Office.MsoTriState.msoFalse; } catch { }
+                try { info.ColorRGB = (int)border.ForeColor.RGB; } catch { }
+                try { info.Weight = (float)border.Weight; } catch { }
+                try { info.DashStyle = (Office.MsoLineDashStyle)(int)border.DashStyle; } catch { }
+            }
+            catch { }
+            return info;
         }
 
         public static void ApplyLayout(PowerPoint.Table table, TableLayoutInfo layout)
@@ -155,6 +203,28 @@ namespace PowerPointUsefulTools
             try { tf.MarginBottom = style.MarginBottom; } catch { }
             try { tf.MarginLeft = style.MarginLeft; } catch { }
             try { tf.MarginRight = style.MarginRight; } catch { }
+
+            ApplyBorder(cell, PowerPoint.PpBorderType.ppBorderTop, style.BorderTop);
+            ApplyBorder(cell, PowerPoint.PpBorderType.ppBorderBottom, style.BorderBottom);
+            ApplyBorder(cell, PowerPoint.PpBorderType.ppBorderLeft, style.BorderLeft);
+            ApplyBorder(cell, PowerPoint.PpBorderType.ppBorderRight, style.BorderRight);
+        }
+
+        private static void ApplyBorder(PowerPoint.Cell cell, PowerPoint.PpBorderType borderType, BorderInfo info)
+        {
+            if (info == null) return;
+            try
+            {
+                dynamic border = cell.Borders[borderType];
+                try { border.Visible = info.Visible ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse; } catch { }
+                if (info.Visible)
+                {
+                    try { border.ForeColor.RGB = info.ColorRGB; } catch { }
+                    try { border.Weight = info.Weight; } catch { }
+                    try { border.DashStyle = info.DashStyle; } catch { }
+                }
+            }
+            catch { }
         }
     }
 }
