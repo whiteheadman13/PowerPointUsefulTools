@@ -58,6 +58,16 @@ namespace PowerPointUsefulTools
             return null;
         }
 
+        public void BtnApplyDefaultLayout_Click(Office.IRibbonControl control)
+        {
+            var sel = Globals.ThisAddIn.Application.ActiveWindow.Selection;
+            var tableShape = GetSelectedTableShape(sel);
+            if (tableShape == null) return;
+
+            var settings = DefaultTableSettings.Load();
+            TableLayoutManager.ApplyDefaultLayout(tableShape.Table, settings);
+        }
+
         public void BtnDefaultTableSettings_Click(Office.IRibbonControl control)
         {
             var settings = DefaultTableSettings.Load();

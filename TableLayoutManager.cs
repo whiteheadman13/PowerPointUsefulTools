@@ -29,6 +29,37 @@ namespace PowerPointUsefulTools
 
     internal static class TableLayoutManager
     {
+        public static void ApplyDefaultLayout(PowerPoint.Table table, DefaultTableSettings settings)
+        {
+            if (settings == null) return;
+            var layout = new TableLayoutInfo
+            {
+                HeaderStyle = ToCellStyleInfo(settings.HeaderStyle),
+                BodyStyle = ToCellStyleInfo(settings.BodyStyle)
+            };
+            ApplyLayout(table, layout);
+        }
+
+        private static CellStyleInfo ToCellStyleInfo(DefaultCellStyle style)
+        {
+            if (style == null) return null;
+            return new CellStyleInfo
+            {
+                FillType = Office.MsoFillType.msoFillSolid,
+                FillForeColorRGB = style.FillForeColorRGB,
+                FillTransparency = style.FillTransparency,
+                FontName = style.FontName,
+                FontSize = style.FontSize,
+                FontBold = style.FontBold,
+                FontItalic = style.FontItalic,
+                FontColorRGB = style.FontColorRGB,
+                MarginTop = style.MarginTop,
+                MarginBottom = style.MarginBottom,
+                MarginLeft = style.MarginLeft,
+                MarginRight = style.MarginRight
+            };
+        }
+
         public static TableLayoutInfo CopyLayout(PowerPoint.Table table)
         {
             var info = new TableLayoutInfo();
