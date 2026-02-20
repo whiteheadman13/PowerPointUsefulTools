@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
+  <ribbon>
+    <tabs>
+      <tab id="tabUsefulTools" label="便利ツール">
+        <group id="groupTableOperations" label="テーブル操作">
+          <button id="btnTableLayoutCopy" label="テーブルレイアウトコピー" size="large" onAction="BtnTableLayoutCopy_Click" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
